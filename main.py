@@ -55,6 +55,7 @@ def main(options):
         raise Exception("Error creating merge request")
 
     #Accept mr
+    mr_id = merge_request.json()['iid']
     url = "https://%s/api/v4/projects/%s/merge_requests/%s/merge" %(local_url, project, mr_id)
     data = {
         'should_remove_source_branch': remove_source_branch,
