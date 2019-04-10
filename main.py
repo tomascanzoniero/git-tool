@@ -63,7 +63,7 @@ def main(options):
         remove_branch = "git branch -d %s" %(source_branch)
 
 def parser(args):
-    parser = OptionParser("usage: python git-script.py -b <source branch> -t <target branch> -c <commit message>")
+    parser = OptionParser("usage: python main.py -b <source branch> -t <target branch> -c <commit message>")
     parser.add_option("-b", "--source-branch", dest="source_branch",
                       default="", type="string",
                       help="Specify the source branch")
