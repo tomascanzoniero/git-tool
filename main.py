@@ -9,8 +9,9 @@ def _get_project():
     git_remote = subprocess.Popen(['git', 'remote', '-v'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     git_remote = git_remote.communicate()
     url = git_remote[0].split(' ')[0]
-    project = url.split('.com/')[-1]
-    project = project.replace('/', '%2F').replace('.git', '')
+    repo = url.split('/')[-1].replace('.git', '')
+    group = url.split('/')[-2] 
+    project = group + '%2F' + repo
     return project 
 
 def main(options):
@@ -20,7 +21,7 @@ def main(options):
     target_branch = options.target_branch
     commit_message = options.commit_message
     remove_source_branch = options.remove_source_branch
-
+    project = _get_project()
     #Commit, checkout and push
     commit = 'git commit -m "%s"' %(commit_message)
     checkout = 'git checkout -b %s' %(source_branch)
@@ -30,7 +31,6 @@ def main(options):
     os.system(push)
     
     #Create merge request
-    project = _get_project()
     url = "https://gitlab.com/api/v4/projects/%s/merge_requests" %(project)
     headers = {
         'PRIVATE-TOKEN': api_key,
