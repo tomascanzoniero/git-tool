@@ -12,7 +12,14 @@ def _get_project():
     repo = url.split('/')[-1].replace('.git', '')
     group = url.split('/')[-2] 
     project = group + '%2F' + repo
-    return project 
+    return project
+
+def _get_local_url():
+    git_remote = subprocess.Popen(['git', 'remote', '-v'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    git_remote = git_remote.communicate()
+    url = git_remote[0].split(' ')[0]
+    local_url = url.split('/')[-3]
+    return local_url
 
 def main(options):
     #Vars
@@ -22,6 +29,8 @@ def main(options):
     commit_message = options.commit_message
     remove_source_branch = options.remove_source_branch
     project = _get_project()
+    local_url = _get_local_url()
+
     #Commit, checkout and push
     commit = 'git commit -m "%s"' %(commit_message)
     checkout = 'git checkout -b %s' %(source_branch)
@@ -31,7 +40,7 @@ def main(options):
     os.system(push)
     
     #Create merge request
-    url = "https://gitlab.com/api/v4/projects/%s/merge_requests" %(project)
+    url = "https://%s/api/v4/projects/%s/merge_requests" %(local_url, project)
     headers = {
         'PRIVATE-TOKEN': api_key,
     }
@@ -46,7 +55,7 @@ def main(options):
         raise Exception("Error creating merge request")
 
     #Accept mr
-    url = "https://gitlab.com/api/v4/projects/%s/merge_requests/%s/merge" %(project, mr_id)
+    url = "https://%s/api/v4/projects/%s/merge_requests/%s/merge" %(local_url, project, mr_id)
     data = {
         'should_remove_source_branch': remove_source_branch,
     } 
