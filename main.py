@@ -71,6 +71,7 @@ def main(options):
     os.system(pull)
     if remove_source_branch:
         remove_branch = "git branch -d %s" %(source_branch)
+        os.system(remove_branch)
 
 def parser(args):
     parser = OptionParser("usage: python main.py -b <source branch> -t <target branch> -c <commit message>")
