@@ -23,7 +23,17 @@ def _get_local_url():
 
 def main(options):
     #Vars
-    api_key = os.environ['GITLAB_API_KEY']    
+    if options.envirioment:
+        try:
+            api_key = os.environ[options.envirioment]
+        except Exception as e:
+            raise Exception("Please specify a valid custom envirioment variable.")
+    else:
+        try:
+            api_key = os.environ['GITLAB_API_KEY']    
+        except Exception as e:
+            raise Exception("GITLAB_API_KEY envirioment variable not found.")
+
     source_branch = options.source_branch
     target_branch = options.target_branch
     commit_message = options.commit_message
@@ -73,6 +83,19 @@ def main(options):
         remove_branch = "git branch -d %s" %(source_branch)
         os.system(remove_branch)
 
+def check_options(options):
+    while not options.source_branch:
+        options.source_branch = raw_input("Specify the source branch: ")
+    while not options.target_branch:
+        current_branch = subprocess.Popen(['git', 'rev-parse', '--abbrev-ref', 'HEAD'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        current_branch = current_branch.communicate()[0].split('\n')[0]
+        tb = raw_input('Specify the target branch[%s]: ' %(current_branch))
+        if not tb:
+            options.target_branch = current_branch
+    while not options.commit_message:
+        options.commit_message = raw_input("Specify the commit message: ")
+    return options
+
 def parser(args):
     parser = OptionParser("usage: python main.py -b <source branch> -t <target branch> -c <commit message>")
     parser.add_option("-b", "--source-branch", dest="source_branch",
@@ -84,14 +107,16 @@ def parser(args):
     parser.add_option("-c", "--commit-message", dest="commit_message",
                       default="", type="string",
                       help="Specify the commit message")
+    parser.add_option("-e", "--envirioment-variable", dest="envirioment",
+                      default="", type="string",
+                      help="Custom envirioment varible. By default: [GITLAB_API_KEY]")
     parser.add_option("-r", "--remove-source-branch", dest="remove_source_branch",
                       default=False, action="store_true",
                       help="Specify this argument if you want to delete the source branch after merge")
     (options, args) = parser.parse_args()
-    if not options.target_branch or not options.commit_message or not options.source_branch:
-        parser.error("Incorrect arguments") 
     return options
 
 if __name__ == "__main__":
    options = parser(sys.argv)
+   options = check_options(options)
    main(options)
